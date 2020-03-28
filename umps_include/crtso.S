@@ -4,6 +4,7 @@
 #include <arch.h>
 #include <aout.h>
 #include <bios_defs.h>
+#include <exc_area.h>
 
 #define CORE_TEXT_VADDR 0x20001000
 
