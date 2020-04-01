@@ -22,11 +22,25 @@
 #ifdef TARGET_UMPS
 void termprint(char *str);
 
+#define STATE_T_SP(location) *(unsigned int *)(location + 30*sizeof(unsigned int))
+#define STATE_T_PC(location) *(unsigned int *)(location + 3*sizeof(unsigned int))
+#define STATE_T_STATUS(location) *(unsigned int *)(location + 2*sizeof(unsigned int))
 /*interrupt disabled, kernel mode, local timer on, virtual memory off*/
 #define STATUS_ALL_INT_DISABLE_KM_LT(status) ((status) | STATUS_KUc | STATUS_TE)
 #define STATUS_ALL_INT_ENABLE_KM_LT(status) ((status) | STATUS_IEc | STATUS_KUc | STATUS_IM_MASK | STATUS_TE)
 
 #define TO_LOAD(status) &(status)
+
+/*SP is handler address, interrupt disabled, kernel mode, local timer on, virtual memory off*/
+/*
+#define INIT_EXCAREA(location, handler) { 													\
+	STATE_T_SP(location) = RAMTOP;															\
+	STATE_T_PC(location) = (memaddr)handler;												\
+	STATE_T_STATUS(location) = STATUS_ALL_INT_DISABLE_KM_LT(STATE_T_STATUS(location));		\
+}
+*/
+
+#define INIT_EXCAREA(location, handler) init_excarea((state_t *)location,handler);
 
 void init_excarea(state_t* p, void* handler){
 	p->reg_sp = RAMTOP;
@@ -34,11 +48,10 @@ void init_excarea(state_t* p, void* handler){
 	p->status = STATUS_ALL_INT_DISABLE_KM_LT(p->status);
 }
 
-/*inizializza processo in kernel mode, interrupt abilitati*/
-void initProcess_KM(state_t* p, void* fun, int n){
-	p->status = STATUS_ALL_INT_DISABLE_KM_LT(p->status);
-	p->pc_epc = (memaddr)fun;
-	p->reg_sp = (RAMTOP-(RAMSIZE*n));
+void initProcess_KM(state_t* p_s, memaddr fun, int n){
+	p_s->status = STATUS_ALL_INT_DISABLE_KM_LT(p_s->status);
+	p_s->pc_epc = fun;
+	p_s->reg_sp = (RAMTOP-(RAMSIZE*n));
 }
 
 #endif
@@ -46,7 +59,24 @@ void initProcess_KM(state_t* p, void* fun, int n){
 #ifdef TARGET_UARM
 #define termprint(str) tprint(str);
 
+#define STATE_T_SP(location) *(unsigned int *)(location + 13*sizeof(unsigned int))
+#define STATE_T_PC(location) *(unsigned int *)(location + 15*sizeof(unsigned int))
+#define STATE_T_STATUS(location) *(unsigned int *)(location + 16*sizeof(unsigned int))
+#define STATE_T_CONTROL(location) *(unsigned int *)(location + 17*sizeof(unsigned int))
+
 #define TO_LOAD(status) &(status->a1)
+
+/*
+#define INIT_EXCAREA(location, handler) { 										\
+	STATE_T_SP(location) = RAMTOP;												\
+	STATE_T_PC(location) = (memaddr)handler;									\
+	STATE_T_STATUS(location) = (STATE_T_STATUS(location) | STATUS_SYS_MODE);	\
+	STATE_T_STATUS(location) = STATUS_ALL_INT_DISABLE(STATE_T_STATUS(location));\
+	STATE_T_CONTROL(location) = CP15_DISABLE_VM(STATE_T_CONTROL(location));		\
+}
+*/
+
+#define INIT_EXCAREA(location, handler) init_excarea((state_t*)location, handler);
 
 void init_excarea(state_t* p, void* handler){
 	p->cpsr = (p->cpsr | STATUS_SYS_MODE);
@@ -56,13 +86,12 @@ void init_excarea(state_t* p, void* handler){
 	p->CP15_Control = CP15_DISABLE_VM(p->CP15_Control);
 }
 
-/*inizializza processo in kernel mode, interrupt abilitati*/
-void initProcess_KM(state_t* p, void* fun, int n){
-	p->cpsr = (p->cpsr | STATUS_SYS_MODE);
-	p->cpsr = STATUS_ALL_INT_ENABLE(p->cpsr);
-	p->pc = (memaddr)fun;
-	p->sp = (RAMTOP-(RAMSIZE*n));
-	p->CP15_Control = CP15_DISABLE_VM(p->CP15_Control);
+void initProcess_KM(state_t* p_s, memaddr fun, int n){
+	p_s->cpsr = (p_s->cpsr | STATUS_SYS_MODE);
+	p_s->cpsr = STATUS_ALL_INT_ENABLE(p_s->cpsr);
+	p_s->pc = fun;
+	p_s->sp = (RAMTOP-(RAMSIZE*n));
+	p_s->CP15_Control = CP15_DISABLE_VM(p_s->CP15_Control);
 }
 
 #endif
@@ -73,6 +102,7 @@ void test3();
 
 void test(){
 	termprint("Hi there!\n");
+
 }
 
 void testx(){
@@ -106,33 +136,32 @@ void handleSYSBP(){
 void initAreas(){
 /*AREA INTERRUPT*/
 ownmemset((state_t *) INT_NEWAREA, 0, sizeof(state_t));
-init_excarea((state_t *)INT_NEWAREA, handleINT);
+INIT_EXCAREA(INT_NEWAREA, handleINT)
 
 /*AREA TLB*/
 ownmemset((state_t *) TLB_NEWAREA, 0, sizeof(state_t));
-init_excarea((state_t *)TLB_NEWAREA, handleTLB);
+INIT_EXCAREA(TLB_NEWAREA, handleTLB)
 
 /*AREA PGMTRAP*/
 ownmemset((state_t *) PGMTRAP_NEWAREA, 0, sizeof(state_t));
-init_excarea((state_t *)PGMTRAP_NEWAREA, handleTRAP);
+INIT_EXCAREA(PGMTRAP_NEWAREA, handleTRAP)
 
 /*AREA SYSKB*/
 ownmemset((state_t *) SYSBK_NEWAREA, 0, sizeof(state_t));
-init_excarea((state_t *)SYSBK_NEWAREA, handleSYSBP);
+INIT_EXCAREA(SYSBK_NEWAREA, handleSYSBP)
 
 }
 
-/*Quello che fa al momento è un test che rimbalza l'interrupt in una syscall che a sua volta
-torna dove era rimasto l'interrupt e fa HALT()*/
 int main(){
 	initAreas();
 	termprint("AREA DONE!\n");
 	initPcbs();
 	termprint("PCB DONE!\n");
 	struct pcb_t* a = allocPcb();
-	initProcess_KM(&a->p_s, testx, 1);
+	initProcess_KM(&a->p_s, (memaddr)testx, 1);
 	termprint("PROCESS INITIALIZED!\n");
 	state_t* p = &(a->p_s);
+	SYSCALL(0,0,0,0);
 	LDST(TO_LOAD(p));
 	termprint("Oh no\n");
 
