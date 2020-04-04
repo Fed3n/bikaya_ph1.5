@@ -83,7 +83,7 @@ void insertProcQ(struct list_head *head, pcb_t *p) {
 	int flag = FALSE;
 	list_for_each_entry(temp, head, p_next) {
 		/*Si aggiunge il PCB dove la priority sia maggiore del PCB seguente*/
-		if (p->priority > temp->priority && flag == FALSE) { 
+		if (p->priority >= temp->priority && flag == FALSE) { 
 			list_add_tail(&(p->p_next), &(temp->p_next));
 			flag = TRUE;
 		}

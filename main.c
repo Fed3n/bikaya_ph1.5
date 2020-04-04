@@ -14,27 +14,10 @@
 #include "pcb.h"
 #include "types_bikaya.h"
 #include "auxfun.h"
-
-#define RAMBASE    *((unsigned int *)BUS_REG_RAM_BASE)
-#define RAMSIZE    *((unsigned int *)BUS_REG_RAM_SIZE)
-#define RAMTOP     (RAMBASE + RAMSIZE)
-#define RAM_FRAMESIZE 4096
-#define WORDSIZE 4
+#include "scheduler.h"
 
 #ifdef TARGET_UMPS
 void termprint(char *str);
-
-/*interrupt disabled, kernel mode, local timer on, virtual memory off*/
-#define STATUS_ALL_INT_DISABLE_KM_LT(status) ((status) | (STATUS_TE))
-#define STATUS_ALL_INT_ENABLE_KM_LT(status) ((status) | (STATUS_IEc) | STATUS_IM(1) | (STATUS_TE))
-
-/*macro da passare a LDST*/
-#define TO_LOAD(status) (status)
-/*macro per accedere al pc da state_t*/
-#define ST_PC pc_epc
-
-/*word count da modificare prima di chiamare LDST dopo un'eccezione*/
-#define SYSBP_PC 1
 
 /*inizializza l'exception area in kernel mode, interrupt disabilitati*/
 void init_excarea(state_t* p, void* handler){
@@ -61,14 +44,6 @@ void initProcess_KM(state_t* p, void* fun, int n){
 
 #ifdef TARGET_UARM
 #define termprint(str) tprint(str);
-
-/*macro per usare LDST su uarm*/
-#define TO_LOAD(status) &(status->a1)
-/*macro per accedere al pc da state_t*/
-#define ST_PC pc
-
-/*word count da modificare prima di chiamare LDST dopo un'eccezione*/
-#define SYSBP_PC 0
 
 /*inizializza l'exception area in kernel mode, interrupt disabilitati*/
 void init_excarea(state_t* p, void* handler){
@@ -107,7 +82,6 @@ void test(){
 	termprint("Hi there!\n");
 	SYSCALL(0,0,0,0);
 	termprint("Back to test\n");
-	HALT();
 }
 
 void handleINT(){
@@ -128,6 +102,8 @@ void handleTRAP(){
 
 void handleSYSBP(){
 	termprint("SYSBP!");
+	terminateProc();
+	schedule();
 	state_t* p = (state_t *)SYSBK_OLDAREA;
 	/*prima di ridare controllo al processo incrementiamo di 1 word il pc a umps, niente su uarm*/
 	p->ST_PC = p->ST_PC + SYSBP_PC*WORDSIZE;
@@ -164,9 +140,13 @@ int main(){
 	termprint("PROCESS INITIALIZED!\n");
 
 	/*Qua nella versione finale immagino andrà chiamato schedule() (e forse prima inizializzato il timer)*/
-
+	/*
 	state_t* p = &(a->p_s);
 	LDST(TO_LOAD(p));
+	*/
+	initReadyQueue();
+	insertReadyQueue(a);
+	schedule();
 	/*Se arriva qua sotto dopo LDST qualcosa è andato così storto dall'aver infranto ogni regola dell'emulatore*/
 	termprint("Oh no\n");
 
