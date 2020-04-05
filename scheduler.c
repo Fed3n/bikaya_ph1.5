@@ -22,7 +22,7 @@ void termprint(char *str);
 #endif
 
 HIDDEN LIST_HEAD(readyQueue_h);
-pcb_t* currentProc;
+//SPOSTATO IN .H -->( pcb_t* currentProc; )
 
 /*AREA MOLTO SPERIMENTALE*/
 /*stato vuoto caricato se la ready queue è vuota in attesa di un nuovo processo*/
@@ -55,6 +55,10 @@ pcb_t* removeReadyQueue(){
 	return removeProcQ(&readyQueue_h);
 }
 
+void remove2ReadyQueue(pcb_t* proc){
+	pcb_t* p = outProcQ(&readyQueue_h,proc);
+}
+
 pcb_t* headReadyQueue(){
 	return headProcQ(&readyQueue_h);
 }
@@ -63,6 +67,13 @@ void terminateProc(){
 	if(currentProc != NULL){
 		freePcb(currentProc);
 		currentProc = NULL;
+	}
+}
+
+void terminateProc2(pcb_t* proc){
+	if(proc != NULL){
+		freePcb(proc);
+		proc = NULL;
 	}
 }
 
