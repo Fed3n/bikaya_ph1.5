@@ -27,7 +27,9 @@
 void termprint(char *str);
 #endif
 
-void state(state_t* source, state_t* dest){
+extern pcb_t* currentProc;
+
+void stateCpy(state_t* source, state_t* dest){
     #ifdef TARGET_UARM
     dest->a1 = source->a1;    //r0
     dest->a2 = source->a2;    //r1
@@ -58,7 +60,7 @@ void state(state_t* source, state_t* dest){
     dest->cause = source->cause;
     dest->status = source->status;
     dest->pc_epc = source->pc_epc;
-    for(int i = 0; i<30: i++) dest->gpr[i] = source->gpr[i];
+    for(int i = 0; i<30; i++) dest->gpr[i] = source->gpr[i];
     dest->hi = source->hi;
     dest->lo = source->lo;
     #endif
@@ -67,30 +69,31 @@ void state(state_t* source, state_t* dest){
 void interrupt() {
 	termprint("INTERRUPT!\n");
 	int line = 0;
-	int cause = getCause();
-	while((line<7) && !(INTERRUPT_LINE(getCAUSE(), line))) {
+	int cause = getCAUSE();
+	termprint("Cause got!");
+	state_t* p = (state_t *)INT_OLDAREA;
+	termprint("a");
+	stateCpy(p, &currentProc->p_s);
+	termprint("State copied");
+	while((line<7) && !(INTERRUPT_LINE(cause, line))) {
 		line++;
 	}
 	if(line == 1) {
-		state_t* p = (state_t *)INT_OLDAREA;
-		state(p, &currentProc->p_s);
-        /*lo inserisco già io in coda nello scheduler*/
-		insertProcQ(&readyQueue_h, currentProc);
+		termprint("PLT!\n");
+        	updatePriority();
 		setTIMER(TIME_SLICE);
 		schedule();
 	}
 	else if(line == 2) {
-		state_t* p = (state_t *)INT_OLDAREA;
-		state(p, &currentProc->p_s);
-        /*lo inserisco già io in coda nello scheduler*/
-		insertProcQ(&readyQueue_h, currentProc);
-		setIT(TIME_SLICE);
+		termprint("IT!\n");
+		updatePriority();
+		//setIT(TIME_SLICE)
 		schedule();
 	}
 	else {
-		//Interrupt non implementato
-		break;
+		termprint("Cause not implemented yet");
 	}
+	LDST(TO_LOAD(p));
 }
 
 

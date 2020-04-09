@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_H
-#define SCHEDULER_H
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 
 #ifdef TARGET_UMPS
 #include "libumps.h"
@@ -19,7 +19,7 @@
 #include "auxfun.h"
 #include "scheduler.h"
 
-void state(state_t* source, state_t* dest);
+void statePR(state_t* source, state_t* dest);
 
 void interrupt();
 
