@@ -102,7 +102,7 @@ void handleTRAP(){
 
 void handleSYSBP(){
 	termprint("SYSBP!");
-	terminateProc();
+	terminateCurrentProc();
 	schedule();
 	state_t* p = (state_t *)SYSBK_OLDAREA;
 	/*prima di ridare controllo al processo incrementiamo di 1 word il pc a umps, niente su uarm*/

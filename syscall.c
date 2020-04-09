@@ -15,6 +15,6 @@ static void sys3_exec(pcb_t* root){
 		if (child != NULL) 
 			sys3_exec(child);
 	}		
-	remove2ReadyQueue(root);
-	terminateProc2();
+	outReadyQueue(root);
+	terminateProc();
 }
