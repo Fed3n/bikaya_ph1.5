@@ -1,9 +1,30 @@
+#ifdef TARGET_UMPS
+#include "libumps.h"
+#include "arch.h"
+#include "cp0.h"
+#include "exc_area.h"
+#endif
+
+#ifdef TARGET_UARM
+#include "libuarm.h"
+#include "arch.h"
+#endif
+
+#include "const.h"
+#include "pcb.h"
+#include "types_bikaya.h"
+#include "auxfun.h"
+#include "interrupt.h"
+#include "scheduler.h"
+
 #ifdef TARGET_UARM
 #define INTERRUPT_LINE(cause, line) CAUSE_IP_GET(cause, line)
+#define termprint(str) tprint(str);
 #endif
 
 #ifdef TARGET_UMPS
 #define INTERRUPT_LINE(cause, line) ((cause) & CAUSE_IP(line))
+void termprint(char *str);
 #endif
 
 void state(state_t* source, state_t* dest){
@@ -45,22 +66,24 @@ void state(state_t* source, state_t* dest){
 
 void interrupt() {
 	termprint("INTERRUPT!\n");
-	int intLine = 0;
+	int line = 0;
 	int cause = getCause();
 	while((line<7) && !(INTERRUPT_LINE(getCAUSE(), line))) {
-		intLine++;
+		line++;
 	}
 	if(line == 1) {
 		state_t* p = (state_t *)INT_OLDAREA;
 		state(p, &currentProc->p_s);
-		insertProcQ(&readyQueue_h, currentProc)
+        /*lo inserisco già io in coda nello scheduler*/
+		insertProcQ(&readyQueue_h, currentProc);
 		setTIMER(TIME_SLICE);
 		schedule();
 	}
 	else if(line == 2) {
 		state_t* p = (state_t *)INT_OLDAREA;
 		state(p, &currentProc->p_s);
-		insertProcQ(&readyQueue_h, currentProc)
+        /*lo inserisco già io in coda nello scheduler*/
+		insertProcQ(&readyQueue_h, currentProc);
 		setIT(TIME_SLICE);
 		schedule();
 	}

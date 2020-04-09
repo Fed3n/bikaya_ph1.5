@@ -13,14 +13,6 @@
 #include "libuarm.h"
 #include "arch.h"
 #endif
-
-#include "const.h"
-#include "pcb.h"
-#include "types_bikaya.h"
-#include "auxfun.h"
-#include "interrupt.h"
-#include "scheduler.h"
-
 #ifdef TARGET_UMPS
 void termprint(char *str);
 #endif
@@ -30,7 +22,7 @@ void termprint(char *str);
 #endif
 
 HIDDEN LIST_HEAD(readyQueue_h);
-//SPOSTATO IN .H -->( pcb_t* currentProc; )
+pcb_t* currentProc;
 
 /*AREA MOLTO SPERIMENTALE*/
 /*stato vuoto caricato se la ready queue è vuota in attesa di un nuovo processo*/
@@ -63,22 +55,22 @@ pcb_t* removeReadyQueue(){
 	return removeProcQ(&readyQueue_h);
 }
 
-void remove2ReadyQueue(pcb_t* proc){
-	pcb_t* p = outProcQ(&readyQueue_h,proc);
+pcb_t* outReadyQueue(pcb_t* proc){
+	return outProcQ(&readyQueue_h,proc);
 }
 
 pcb_t* headReadyQueue(){
 	return headProcQ(&readyQueue_h);
 }
 
-void terminateProc(){
+void terminateCurrentProc(){
 	if(currentProc != NULL){
 		freePcb(currentProc);
 		currentProc = NULL;
 	}
 }
 
-void terminateProc2(pcb_t* proc){
+void terminateProc(pcb_t* proc){
 	if(proc != NULL){
 		freePcb(proc);
 		proc = NULL;
@@ -103,7 +95,6 @@ void schedule(){
 	/*Processo in esecuzione dovrebbe venire così messo primo in coda
 	se non ci sono state modifiche alla priorità, a meno che non sia
 	stato terminato*/
-	setTIMER(3000);
 	if(currentProc != NULL){
 		insertReadyQueue(currentProc);
 	}
