@@ -53,7 +53,8 @@
 #define ST_A1 reg_a1
 #define ST_A2 reg_a2
 #define ST_A3 reg_a3
-#define CAUSE_REG cause
+/*la seguente macro richiede*/
+#define CAUSE_REG(area) CAUSE_GET_EXCCODE(area->cause)
 
 #endif
 
@@ -71,7 +72,7 @@
 #define ST_A1 a2
 #define ST_A2 a3
 #define ST_A3 a4
-#define CAUSE_REG CP15_Cause
+#define CAUSE_REG(area) CAUSE_EXCCODE_GET(area->CP15_Cause)
 
 #endif
 
