@@ -15,6 +15,7 @@
 #include "types_bikaya.h"
 #include "auxfun.h"
 #include "scheduler.h"
+#include "syscall.h"
 
 #ifdef TARGET_UMPS
 void termprint(char *str);
@@ -80,7 +81,7 @@ void testx(){
 
 void test(){
 	termprint("Hi there!\n");
-	SYSCALL(0,0,0,0);
+	SYSCALL(3,0,0,0);
 	termprint("Back to test\n");
 }
 
@@ -123,7 +124,7 @@ init_excarea((state_t *)TLB_NEWAREA, handleTLB);
 init_excarea((state_t *)PGMTRAP_NEWAREA, handleTRAP);
 
 /*AREA SYSKB*/
-init_excarea((state_t *)SYSBK_NEWAREA, handleSYSBP);
+init_excarea((state_t *)SYSBK_NEWAREA, syscall_handler);
 
 }
 

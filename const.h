@@ -47,6 +47,14 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 1
+
+/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
+#define ST_A0 reg_ao
+#define ST_A1 reg_a1
+#define ST_A2 reg_a2
+#define ST_A3 reg_a3
+#define CAUSE_REG cause
+
 #endif
 
 #ifdef TARGET_UARM
@@ -57,6 +65,14 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 0
+
+/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
+#define ST_A0 a1
+#define ST_A1 a2
+#define ST_A2 a3
+#define ST_A3 a4
+#define CAUSE_REG CP15_Cause
+
 #endif
 
 #endif
