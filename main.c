@@ -156,13 +156,13 @@ int main(){
 	/*test rimozione figli*/
 	struct pcb_t* x = allocPcb();
 	initProcess_KM(&x->p_s, testx, 2);
-	//insertChild(a,x);
+	insertChild(a,x);
 	struct pcb_t* y = allocPcb();
 	initProcess_KM(&y->p_s, testy, 3);
-	//insertChild(a,y);
+	insertChild(a,y);
 	struct pcb_t* z = allocPcb();
 	initProcess_KM(&z->p_s, testz, 4);
-	//insertChild(x,z);
+	insertChild(x,z);
 
 	/*Qua nella versione finale immagino andrà chiamato schedule() (e forse prima inizializzato il timer)*/
 	/*
