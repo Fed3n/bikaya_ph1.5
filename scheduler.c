@@ -70,13 +70,6 @@ void terminateCurrentProc(){
 	}
 }
 
-void terminateProc(pcb_t* proc){
-	if(proc != NULL){
-		freePcb(proc);
-		proc = NULL;
-	}
-}
-
 void updatePriority(){
 	if(currentProc != NULL){
 		/*reset alla priorità del processo in controllo*/

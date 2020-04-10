@@ -53,8 +53,10 @@
 #define ST_A1 reg_a1
 #define ST_A2 reg_a2
 #define ST_A3 reg_a3
-/*la seguente macro richiede*/
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
 #define CAUSE_REG(area) CAUSE_GET_EXCCODE(area->cause)
+
+#define SYSCALL_EXC EXC_SYS
 
 #endif
 
@@ -72,7 +74,10 @@
 #define ST_A1 a2
 #define ST_A2 a3
 #define ST_A3 a4
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
 #define CAUSE_REG(area) CAUSE_EXCCODE_GET(area->CP15_Cause)
+
+#define SYSCALL_EXC EXC_SYSCALL
 
 #endif
 

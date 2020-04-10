@@ -74,15 +74,28 @@ void test1();
 void test2();
 void test3();
 
-void testx(){
-	for(;;)
-		;
-}
-
 void test(){
 	termprint("Hi there!\n");
 	SYSCALL(3,0,0,0);
 	termprint("Back to test\n");
+}
+
+void testx(){
+	termprint("I'm testX!\n");
+	for(;;)
+		;
+}
+
+void testy(){
+	termprint("I'm testY!\n");
+	for(;;)
+		;
+}
+
+void testz(){
+	termprint("I'm testZ!\n");
+	for(;;)
+		;
 }
 
 void handleINT(){
@@ -140,13 +153,30 @@ int main(){
 	initProcess_KM(&a->p_s, test, 1);
 	termprint("PROCESS INITIALIZED!\n");
 
+	/*test rimozione figli*/
+	struct pcb_t* x = allocPcb();
+	initProcess_KM(&x->p_s, testx, 2);
+	//insertChild(a,x);
+	struct pcb_t* y = allocPcb();
+	initProcess_KM(&y->p_s, testy, 3);
+	//insertChild(a,y);
+	struct pcb_t* z = allocPcb();
+	initProcess_KM(&z->p_s, testz, 4);
+	//insertChild(x,z);
+
 	/*Qua nella versione finale immagino andrà chiamato schedule() (e forse prima inizializzato il timer)*/
 	/*
 	state_t* p = &(a->p_s);
 	LDST(TO_LOAD(p));
 	*/
 	initReadyQueue();
+//	insertReadyQueue(a);
+
+	insertReadyQueue(z);
+	insertReadyQueue(y);
+	insertReadyQueue(x);
 	insertReadyQueue(a);
+	
 	schedule();
 	/*Se arriva qua sotto dopo LDST qualcosa è andato così storto dall'aver infranto ogni regola dell'emulatore*/
 	termprint("Oh no\n");
