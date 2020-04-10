@@ -89,9 +89,29 @@ void test(){
 }
 
 void handleINT(){
-	termprint("INTERRUPT!");
+	extern pcb_t* currentProc;
+	termprint("INTERRUPT!\n");
 	/*prima di ridare controllo al processo qua dovremmo diminuire di 1 word il pc a uarm, niente su umps*/
-	HALT();
+	int line = 0;
+	while(line<=7 && !(INTERRUPT_LINE_CAUSE(getCAUSE(), line))) line++;
+	/*Siccome il PLT non e’ presente su uARM, e’
+	conveniente sfruttare l’interval timer su
+	entrambe le piattaforme*/
+	memcpy((state_t*) INT_OLDAREA, &currentProc->p_s, sizeof(state_t*));
+	switch(line){
+		case PROCESSOR_LOCAL_TIMER:
+			termprint("PLT!\n");
+			break;
+		case BUS_INTERVAL_TIMER:
+			termprint("IT!\n");
+			updatePriority();
+			termprint("Aggiornate le priority");
+			setTIMER(TIME_SLICE);
+			schedule();
+		default:
+			termprint("Linea non ancora implementata\n");
+			HALT();
+	}
 }
 
 void handleTLB(){
@@ -118,7 +138,7 @@ void handleSYSBP(){
 /*Prima inizializzo tutte le aree a 0, poi assegno i campi richiesti con una macro*/
 void initAreas(){
 /*AREA INTERRUPT*/
-init_excarea((state_t *)INT_NEWAREA, interrupt);
+init_excarea((state_t *)INT_NEWAREA, handleINT);
 
 /*AREA TLB*/
 init_excarea((state_t *)TLB_NEWAREA, handleTLB);

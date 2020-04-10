@@ -30,7 +30,17 @@
 #define RAM_FRAMESIZE 4096
 #define WORDSIZE 4
 
+#define memcpy ownmemcpy
+
 #define TIME_SLICE 3000
+#define INTER_PROCESSOR_INTERRUPT 0
+#define PROCESSOR_LOCAL_TIMER 1
+#define BUS_INTERVAL_TIMER 2
+#define DISK_DEVICES 3
+#define TYPE_DEVICES 4
+#define NETWORK_DEVICES 5
+#define PRINTER_DEVICES 6
+#define TERMINAL_DEVICES 7
 
 /**************************************************************
 *
@@ -47,6 +57,9 @@
 /*macro per accedere al pc da state_t*/
 #define ST_PC pc_epc
 
+/*macro per controllare la linea corrispondente dell'interrupt*/
+#define INTERRUPT_LINE_CAUSE(cause, line) ((cause) & CAUSE_IP(line))
+
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 1
 #endif
@@ -56,6 +69,9 @@
 #define TO_LOAD(status) &(status->a1)
 /*macro per accedere al pc da state_t*/
 #define ST_PC pc
+
+/*macro per controllare la linea corrispondente dell'interrupt*/
+#define INTERRUPT_LINE_CAUSE(cause, line) CAUSE_IP_GET(cause, line)
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 0

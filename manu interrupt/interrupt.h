@@ -19,8 +19,4 @@
 #include "auxfun.h"
 #include "scheduler.h"
 
-void statePR(state_t* source, state_t* dest);
-
-void interrupt();
-
 #endif

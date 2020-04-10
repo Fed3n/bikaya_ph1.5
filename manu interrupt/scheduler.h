@@ -3,7 +3,7 @@
 
 #define AGING_AMOUNT 1
 
-pcb_t* currentProc;
+HIDDEN pcb_t* currentProc;
 
 void initReadyQueue();
 

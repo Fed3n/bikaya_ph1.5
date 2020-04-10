@@ -103,11 +103,10 @@ void schedule(){
 	/*Processo in esecuzione dovrebbe venire così messo primo in coda
 	se non ci sono state modifiche alla priorità, a meno che non sia
 	stato terminato*/
-	setTIMER(2000);
 	if(currentProc != NULL){
 		insertReadyQueue(currentProc);
 	}
-
+	setTIMER(3000);
 	/*Se non ci sono processi da schedulare, lo scheduler attende*/
 	if(emptyReadyQueue())
 		LDST(TO_LOAD((&waitingState)));
