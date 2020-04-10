@@ -1,4 +1,7 @@
-#ifdef TARGET_UMPS
+//SPOSTATO TUTTO MOMENTANEAMENTE NELLA FUNZIONE DEL MAIN
+
+
+/*#ifdef TARGET_UMPS
 #include "libumps.h"
 #include "arch.h"
 #include "cp0.h"
@@ -98,7 +101,7 @@ void interrupt() {
 
 
 
-
+*/
 
 
 
