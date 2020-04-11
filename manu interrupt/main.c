@@ -14,8 +14,9 @@
 #include "pcb.h"
 #include "types_bikaya.h"
 #include "auxfun.h"
-#include "interrupt.h"
 #include "scheduler.h"
+#include "interrupt.h"
+#include "handler.h"
 
 #ifdef TARGET_UMPS
 void termprint(char *str);
@@ -70,28 +71,42 @@ void initProcess_KM(state_t* p, void* fun, int n){
 
 #endif
 
-
-extern void interrupt();
-
 void test1();
 void test2();
 void test3();
 
+void test(){
+	termprint("Hi there!\n");
+	SYSCALL(3,0,0,0);
+	termprint("Back to test\n");
+}
+
 void testx(){
+	termprint("I'm testX!\n");
 	for(;;)
 		;
 }
 
-void test(){
-	termprint("Hi there!\n");
-	SYSCALL(0,0,0,0);
-	termprint("Back to test\n");
+void testy(){
+	termprint("I'm testY!\n");
+	for(;;)
+		;
+}
+
+void testz(){
+	termprint("I'm testZ!\n");
+	for(;;)
+		;
 }
 
 void handleINT(){
-	extern pcb_t* currentProc;
-	termprint("INTERRUPT!\n");
+	termprint("INTERRUPT!");
 	/*prima di ridare controllo al processo qua dovremmo diminuire di 1 word il pc a uarm, niente su umps*/
+	#ifdef TARGET_UARM
+	state_t* p = (state_t *)INT_OLDAREA;
+	p->ST_PC = p->ST_PC - SYSBP_PC*WORDSIZE;
+	#endif
+	extern pcb_t* currentProc;
 	int line = 0;
 	while(line<=7 && !(INTERRUPT_LINE_CAUSE(getCAUSE(), line))) line++;
 	/*Siccome il PLT non e’ presente su uARM, e’
@@ -105,13 +120,14 @@ void handleINT(){
 		case BUS_INTERVAL_TIMER:
 			termprint("IT!\n");
 			updatePriority();
-			termprint("Aggiornate le priority");
-			setTIMER(TIME_SLICE);
+			termprint("Aggiornate le priority\n");
+			setTIMER(ACK_SLICE);
 			schedule();
 		default:
 			termprint("Linea non ancora implementata\n");
 			HALT();
 	}
+	LDST((state_t*)INT_OLDAREA);
 }
 
 void handleTLB(){
@@ -126,7 +142,7 @@ void handleTRAP(){
 
 void handleSYSBP(){
 	termprint("SYSBP!");
-	terminateProc();
+	terminateCurrentProc();
 	schedule();
 	state_t* p = (state_t *)SYSBK_OLDAREA;
 	/*prima di ridare controllo al processo incrementiamo di 1 word il pc a umps, niente su uarm*/
@@ -138,7 +154,7 @@ void handleSYSBP(){
 /*Prima inizializzo tutte le aree a 0, poi assegno i campi richiesti con una macro*/
 void initAreas(){
 /*AREA INTERRUPT*/
-init_excarea((state_t *)INT_NEWAREA, handleINT);
+init_excarea((state_t *)INT_NEWAREA, interrupt_handler);
 
 /*AREA TLB*/
 init_excarea((state_t *)TLB_NEWAREA, handleTLB);
@@ -147,7 +163,7 @@ init_excarea((state_t *)TLB_NEWAREA, handleTLB);
 init_excarea((state_t *)PGMTRAP_NEWAREA, handleTRAP);
 
 /*AREA SYSKB*/
-init_excarea((state_t *)SYSBK_NEWAREA, handleSYSBP);
+init_excarea((state_t *)SYSBK_NEWAREA, syscall_handler);
 
 }
 
@@ -163,13 +179,30 @@ int main(){
 	initProcess_KM(&a->p_s, test, 1);
 	termprint("PROCESS INITIALIZED!\n");
 
+	/*test rimozione figli*/
+	struct pcb_t* x = allocPcb();
+	initProcess_KM(&x->p_s, testx, 2);
+	insertChild(a,x);
+	struct pcb_t* y = allocPcb();
+	initProcess_KM(&y->p_s, testy, 3);
+	insertChild(a,y);
+	struct pcb_t* z = allocPcb();
+	initProcess_KM(&z->p_s, testz, 4);
+	insertChild(x,z);
+
 	/*Qua nella versione finale immagino andrà chiamato schedule() (e forse prima inizializzato il timer)*/
 	/*
 	state_t* p = &(a->p_s);
 	LDST(TO_LOAD(p));
 	*/
 	initReadyQueue();
+//	insertReadyQueue(a);
+
+	insertReadyQueue(z);
+	insertReadyQueue(y);
+	insertReadyQueue(x);
 	insertReadyQueue(a);
+	
 	schedule();
 	/*Se arriva qua sotto dopo LDST qualcosa è andato così storto dall'aver infranto ogni regola dell'emulatore*/
 	termprint("Oh no\n");

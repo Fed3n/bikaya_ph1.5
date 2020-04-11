@@ -33,6 +33,7 @@
 #define memcpy ownmemcpy
 
 #define TIME_SLICE 3000
+#define ACK_SLICE TIME_SLICE*(*(memaddr *)BUS_REG_TIME_SCALE)
 #define INTER_PROCESSOR_INTERRUPT 0
 #define PROCESSOR_LOCAL_TIMER 1
 #define BUS_INTERVAL_TIMER 2
@@ -62,6 +63,17 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 1
+
+/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
+#define ST_A0 reg_ao
+#define ST_A1 reg_a1
+#define ST_A2 reg_a2
+#define ST_A3 reg_a3
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
+#define CAUSE_REG(area) CAUSE_GET_EXCCODE(area->cause)
+
+#define SYSCALL_EXC EXC_SYS
+
 #endif
 
 #ifdef TARGET_UARM
@@ -75,6 +87,17 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 0
+
+/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
+#define ST_A0 a1
+#define ST_A1 a2
+#define ST_A2 a3
+#define ST_A3 a4
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
+#define CAUSE_REG(area) CAUSE_EXCCODE_GET(area->CP15_Cause)
+
+#define SYSCALL_EXC EXC_SYSCALL
+
 #endif
 
 #endif
