@@ -36,6 +36,7 @@ void syscall_handler(){
 				sys3();
 			break;
 			default:
+				termprint("Non sys3");
 				schedule();
 			break;
 		}
@@ -44,10 +45,10 @@ void syscall_handler(){
 }
 
 void interrupt_handler(){
-	termprint("INTERRUPT!");
+	//termprint("INTERRUPT!");
 	/*prima di ridare controllo al processo qua dovremmo diminuire di 1 word il pc a uarm, niente su umps*/
 	state_t* p = (state_t *)INT_OLDAREA;
-	p->ST_PC = p->ST_PC - INT_PC*WORDSIZE;
+	p->ST_PC = p->ST_PC + INT_PC*WORDSIZE;
 	int line = 0;
 	while(line<=7 && !(INTERRUPT_LINE_CAUSE(getCAUSE(), line))) line++;
 	/*Siccome il PLT non e’ presente su uARM, e’
@@ -55,10 +56,10 @@ void interrupt_handler(){
 	entrambe le piattaforme*/
 	switch(line){
 		case PROCESSOR_LOCAL_TIMER:
-			termprint("PLT!\n");
+			//termprint("PLT!\n");
 			interrupt12();
 		case BUS_INTERVAL_TIMER:
-			termprint("IT!\n");
+			//termprint("IT!\n");
 			interrupt12();
 		default:
 			termprint("Linea non ancora implementata\n");
@@ -69,11 +70,9 @@ void interrupt_handler(){
 
 //Aggiorno le priority, reinserisco il processo in stato ready e ripasso il controllo allo scheduler
 void interrupt12(){
-	extern pcb_t* currentProc;
-	memcpy((state_t*) INT_OLDAREA, &currentProc->p_s, sizeof(state_t*));
+	ownmemcpy((state_t*) INT_OLDAREA, &(currentProc->p_s), sizeof(state_t));
 	updatePriority();
-	termprint("Aggiornate le priority\n");
-	//insertReadyQueue(currentProc);
+	//termprint("Aggiornate le priority\n");
 	setTIMER(ACK_SLICE);
 	schedule();
 }

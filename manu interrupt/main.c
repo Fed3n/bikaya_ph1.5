@@ -34,7 +34,6 @@ void init_excarea(state_t* p, void* handler){
 /*inizializza processo in kernel mode, interrupt disabilitati escluso timer*/
 /*n = numero del processo, che influenza dove gli viene assegnato spazio in ram*/
 void initProcess_KM(pcb_t* p, void* fun, int n){
-	ownmemset(p, 0, sizeof(state_t));
 	p->p_s.reg_sp = (RAMTOP-(RAM_FRAMESIZE*n));
 	/*Inizializzo sia pc_epc che reg_t9 all'entry point come dal manuale di umps*/
 	p->p_s.pc_epc = (memaddr)fun;
@@ -62,7 +61,6 @@ void init_excarea(state_t* p, void* handler){
 /*inizializza processo in kernel mode, interrupt disabilitati escluso timer*/
 /*n = numero del processo, che influenza la priorità e dove gli viene assegnato spazio in ram*/
 void initProcess_KM(pcb_t* p, void* fun, int n){
-	ownmemset(p, 0, sizeof(state_t));
 	p->p_s.pc = (memaddr)fun;
 	p->p_s.sp = (RAMTOP-(RAM_FRAMESIZE*n));
 	p->p_s.cpsr = (p->p_s.cpsr | STATUS_SYS_MODE);
@@ -172,9 +170,7 @@ int main(){
 	insertReadyQueue(z);
 	insertReadyQueue(y);
 	insertReadyQueue(x);
-	/*
-	insertReadyQueue(a);
-	*/
+
 	setTIMER(ACK_SLICE);
 	schedule();
 	/*Se arriva qua sotto dopo LDST qualcosa è andato così storto dall'aver infranto ogni regola dell'emulatore*/

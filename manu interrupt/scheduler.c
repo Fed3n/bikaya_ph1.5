@@ -84,8 +84,7 @@ void updatePriority(){
 }
 
 void schedule(){
-	int a = 0;
-	termprint("SCHEDULE!\n");
+	//termprint("SCHEDULE!\n");
 
 	/*Processo in esecuzione dovrebbe venire così messo primo in coda
 	se non ci sono state modifiche alla priorità, a meno che non sia
