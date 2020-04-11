@@ -31,8 +31,7 @@ pcb_t* currentProc;
 state_t waitingState;
 
 static void wait4proc(){
-	for(;;)
-		;
+	WAIT();
 }
 
 #ifdef TARGET_UMPS
