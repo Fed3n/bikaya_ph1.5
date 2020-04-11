@@ -82,52 +82,23 @@ void test(){
 }
 
 void testx(){
-	termprint("I'm testX!\n");
 	for(;;)
-		;
+		termprint("X");
 }
 
 void testy(){
-	termprint("I'm testY!\n");
 	for(;;)
-		;
+		termprint("Y");
 }
 
 void testz(){
-	termprint("I'm testZ!\n");
 	for(;;)
-		;
+		termprint("Z");
 }
 
 void handleINT(){
 	termprint("INTERRUPT!");
-	/*prima di ridare controllo al processo qua dovremmo diminuire di 1 word il pc a uarm, niente su umps*/
-	#ifdef TARGET_UARM
-	state_t* p = (state_t *)INT_OLDAREA;
-	p->ST_PC = p->ST_PC - SYSBP_PC*WORDSIZE;
-	#endif
-	extern pcb_t* currentProc;
-	int line = 0;
-	while(line<=7 && !(INTERRUPT_LINE_CAUSE(getCAUSE(), line))) line++;
-	/*Siccome il PLT non e’ presente su uARM, e’
-	conveniente sfruttare l’interval timer su
-	entrambe le piattaforme*/
-	memcpy((state_t*) INT_OLDAREA, &currentProc->p_s, sizeof(state_t*));
-	switch(line){
-		case PROCESSOR_LOCAL_TIMER:
-			termprint("PLT!\n");
-			break;
-		case BUS_INTERVAL_TIMER:
-			termprint("IT!\n");
-			updatePriority();
-			termprint("Aggiornate le priority\n");
-			setTIMER(ACK_SLICE);
-			schedule();
-		default:
-			termprint("Linea non ancora implementata\n");
-			HALT();
-	}
-	LDST((state_t*)INT_OLDAREA);
+	HALT();
 }
 
 void handleTLB(){
@@ -175,34 +146,32 @@ int main(){
 	initPcbs();
 	termprint("PCB DONE!\n");
 
+	/*
 	struct pcb_t* a = allocPcb();
 	initProcess_KM(&a->p_s, test, 1);
+	*/
 	termprint("PROCESS INITIALIZED!\n");
 
 	/*test rimozione figli*/
 	struct pcb_t* x = allocPcb();
 	initProcess_KM(&x->p_s, testx, 2);
-	insertChild(a,x);
+	//insertChild(a,x);
 	struct pcb_t* y = allocPcb();
 	initProcess_KM(&y->p_s, testy, 3);
-	insertChild(a,y);
+	//insertChild(a,y);
 	struct pcb_t* z = allocPcb();
 	initProcess_KM(&z->p_s, testz, 4);
-	insertChild(x,z);
+	//insertChild(x,z);
 
-	/*Qua nella versione finale immagino andrà chiamato schedule() (e forse prima inizializzato il timer)*/
-	/*
-	state_t* p = &(a->p_s);
-	LDST(TO_LOAD(p));
-	*/
 	initReadyQueue();
-//	insertReadyQueue(a);
 
 	insertReadyQueue(z);
 	insertReadyQueue(y);
 	insertReadyQueue(x);
+	/*
 	insertReadyQueue(a);
-	
+	*/
+	setTIMER(ACK_SLICE);
 	schedule();
 	/*Se arriva qua sotto dopo LDST qualcosa è andato così storto dall'aver infranto ogni regola dell'emulatore*/
 	termprint("Oh no\n");
