@@ -1,6 +1,7 @@
 #include "pcb.h"
 #include "const.h"
 #include "scheduler.h"
+#include "types_bikaya.h"
 
 #ifdef TARGET_UMPS
 #include "libumps.h"
@@ -28,19 +29,37 @@ pcb_t* currentProc;
 /*stato vuoto caricato se la ready queue è vuota in attesa di un nuovo processo*/
 state_t waitingState;
 
-void initProcess_KM(state_t* p, void* fun, int n);
-
 static void wait4proc(){
-	termprint("Now waiting\n");
 	for(;;)
 		;
 }
+
+#ifdef TARGET_UMPS
+void initWaitingProc(){
+	waitingState.reg_sp = (RAMTOP-(RAM_FRAMESIZE));
+	/*Inizializzo sia pc_epc che reg_t9 all'entry point come dal manuale di umps*/
+	waitingState.pc_epc = (memaddr)wait4proc;
+	waitingState.reg_t9 = (memaddr)wait4proc;
+	waitingState.status = STATUS_ALL_INT_ENABLE_KM_LT(waitingState.status);
+}
+#endif
+
+#ifdef TARGET_UARM
+void initWaitingProc(){
+	waitingState.pc = (memaddr)wait4proc;
+	waitingState.sp = (RAMTOP-(RAM_FRAMESIZE));
+	waitingState.cpsr = (waitingState.cpsr | STATUS_SYS_MODE);
+	waitingState.cpsr = STATUS_DISABLE_INT(waitingState.cpsr);
+	waitingState.cpsr = STATUS_ENABLE_TIMER(waitingState.cpsr);
+	waitingState.CP15_Control = CP15_DISABLE_VM(waitingState.CP15_Control);
+}
+#endif
 
 /*************************/
 
 void initReadyQueue(){
 	mkEmptyProcQ(&readyQueue_h);
-	initProcess_KM(&waitingState, wait4proc, 1);
+	initWaitingProc();
 }
 
 int emptyReadyQueue(){
@@ -70,13 +89,6 @@ void terminateCurrentProc(){
 	}
 }
 
-void terminateProc(pcb_t* proc){
-	if(proc != NULL){
-		freePcb(proc);
-		proc = NULL;
-	}
-}
-
 void updatePriority(){
 	if(currentProc != NULL){
 		/*reset alla priorità del processo in controllo*/
@@ -90,7 +102,7 @@ void updatePriority(){
 }
 
 void schedule(){
-	termprint("SCHEDULE!\n");
+	//termprint("SCHEDULE!\n");
 
 	/*Processo in esecuzione dovrebbe venire così messo primo in coda
 	se non ci sono state modifiche alla priorità, a meno che non sia
@@ -100,8 +112,9 @@ void schedule(){
 	}
 
 	/*Se non ci sono processi da schedulare, lo scheduler attende*/
-	if(emptyReadyQueue())
+	if(emptyReadyQueue()){
 		LDST(TO_LOAD((&waitingState)));
+	}
 	
 	currentProc = removeReadyQueue();
 	state_t* p = &(currentProc->p_s);
