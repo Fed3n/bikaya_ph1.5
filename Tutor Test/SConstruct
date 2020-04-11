@@ -5,7 +5,7 @@ import os
 #Per ora aggiungere file in directory aggiuntive richiede aggiungere manualmente informazioni al build system
 
 #Inserire elenco di source file da compilare senza estensione separati da spazio
-files = 'main p1.5test_bikaya_v0 scheduler pcb auxfun handler'
+files = 'main p1.5test_bikaya_v0 scheduler pcb auxfun syscall_handler interrupt_handler'
 
 files_list = files.split(' ')
 

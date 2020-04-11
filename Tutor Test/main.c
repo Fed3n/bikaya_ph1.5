@@ -15,7 +15,8 @@
 #include "types_bikaya.h"
 #include "auxfun.h"
 #include "scheduler.h"
-#include "handler.h"
+#include "syscall_handler.h"
+#include "interrupt_handler.h"
 
 #ifdef TARGET_UMPS
 void termprint(char *str);
