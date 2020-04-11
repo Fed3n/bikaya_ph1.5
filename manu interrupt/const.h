@@ -63,9 +63,10 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 1
+#define INT_PC 0
 
 /*accesso ai registri dello state_t per ottenere i parametri della syscall*/
-#define ST_A0 reg_ao
+#define ST_A0 reg_a0
 #define ST_A1 reg_a1
 #define ST_A2 reg_a2
 #define ST_A3 reg_a3
@@ -87,6 +88,7 @@
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 0
+#define INT_PC (-1)
 
 /*accesso ai registri dello state_t per ottenere i parametri della syscall*/
 #define ST_A0 a1

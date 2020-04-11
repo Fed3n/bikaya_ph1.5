@@ -33,13 +33,15 @@ void init_excarea(state_t* p, void* handler){
 
 /*inizializza processo in kernel mode, interrupt disabilitati escluso timer*/
 /*n = numero del processo, che influenza dove gli viene assegnato spazio in ram*/
-void initProcess_KM(state_t* p, void* fun, int n){
+void initProcess_KM(pcb_t* p, void* fun, int n){
 	ownmemset(p, 0, sizeof(state_t));
-	p->reg_sp = (RAMTOP-(RAM_FRAMESIZE*n));
+	p->p_s.reg_sp = (RAMTOP-(RAM_FRAMESIZE*n));
 	/*Inizializzo sia pc_epc che reg_t9 all'entry point come dal manuale di umps*/
-	p->pc_epc = (memaddr)fun;
-	p->reg_t9 = (memaddr)fun;
-	p->status = STATUS_ALL_INT_ENABLE_KM_LT(p->status);
+	p->p_s.pc_epc = (memaddr)fun;
+	p->p_s.reg_t9 = (memaddr)fun;
+	p->p_s.status = STATUS_ALL_INT_ENABLE_KM_LT(p->p_s.status);
+	p->original_priority = n;
+	p->priority = n;
 }
 
 #endif
@@ -58,22 +60,24 @@ void init_excarea(state_t* p, void* handler){
 }
 
 /*inizializza processo in kernel mode, interrupt disabilitati escluso timer*/
-/*n = numero del processo, che influenza dove gli viene assegnato spazio in ram*/
-void initProcess_KM(state_t* p, void* fun, int n){
+/*n = numero del processo, che influenza la priorità e dove gli viene assegnato spazio in ram*/
+void initProcess_KM(pcb_t* p, void* fun, int n){
 	ownmemset(p, 0, sizeof(state_t));
-	p->pc = (memaddr)fun;
-	p->sp = (RAMTOP-(RAM_FRAMESIZE*n));
-	p->cpsr = (p->cpsr | STATUS_SYS_MODE);
-	p->cpsr = STATUS_DISABLE_INT(p->cpsr);
-	p->cpsr = STATUS_ENABLE_TIMER(p->cpsr);
-	p->CP15_Control = CP15_DISABLE_VM(p->CP15_Control);
+	p->p_s.pc = (memaddr)fun;
+	p->p_s.sp = (RAMTOP-(RAM_FRAMESIZE*n));
+	p->p_s.cpsr = (p->p_s.cpsr | STATUS_SYS_MODE);
+	p->p_s.cpsr = STATUS_DISABLE_INT(p->p_s.cpsr);
+	p->p_s.cpsr = STATUS_ENABLE_TIMER(p->p_s.cpsr);
+	p->p_s.CP15_Control = CP15_DISABLE_VM(p->p_s.CP15_Control);
+	p->original_priority = n;
+	p->priority = n;
 }
 
 #endif
 
-void test1();
-void test2();
-void test3();
+extern void test1();
+extern void test2();
+extern void test3();
 
 void test(){
 	termprint("Hi there!\n");
@@ -154,13 +158,13 @@ int main(){
 
 	/*test rimozione figli*/
 	struct pcb_t* x = allocPcb();
-	initProcess_KM(&x->p_s, testx, 2);
+	initProcess_KM(x, test1, 1);
 	//insertChild(a,x);
 	struct pcb_t* y = allocPcb();
-	initProcess_KM(&y->p_s, testy, 3);
+	initProcess_KM(y, test2, 2);
 	//insertChild(a,y);
 	struct pcb_t* z = allocPcb();
-	initProcess_KM(&z->p_s, testz, 4);
+	initProcess_KM(z, test3, 3);
 	//insertChild(x,z);
 
 	initReadyQueue();

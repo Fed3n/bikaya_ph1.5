@@ -46,10 +46,8 @@ void syscall_handler(){
 void interrupt_handler(){
 	termprint("INTERRUPT!");
 	/*prima di ridare controllo al processo qua dovremmo diminuire di 1 word il pc a uarm, niente su umps*/
-	#ifdef TARGET_UARM
 	state_t* p = (state_t *)INT_OLDAREA;
-	p->ST_PC = p->ST_PC - SYSBP_PC*WORDSIZE;
-	#endif
+	p->ST_PC = p->ST_PC - INT_PC*WORDSIZE;
 	int line = 0;
 	while(line<=7 && !(INTERRUPT_LINE_CAUSE(getCAUSE(), line))) line++;
 	/*Siccome il PLT non e’ presente su uARM, e’
