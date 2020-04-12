@@ -1,6 +1,7 @@
-#ifndef INTERRUPT_HANDLER_H
-#define INTERRUPT_HANDLER_H
+#ifndef INTERRUPT_H
+#define INTERRUPT_H
 #include "pcb.h"
+#include "const.h"
 
 void interrupt_handler();
 

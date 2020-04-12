@@ -2,6 +2,7 @@
 #include "const.h"
 #include "scheduler.h"
 #include "types_bikaya.h"
+#include "auxfun.h"
 
 #ifdef TARGET_UMPS
 #include "libumps.h"
@@ -30,12 +31,12 @@ pcb_t* currentProc;
 state_t waitingState;
 
 static void wait4proc(){
-	for(;;)
-		;
+	WAIT();
 }
 
 #ifdef TARGET_UMPS
 void initWaitingProc(){
+	ownmemset(&waitingState, 0, sizeof(state_t));
 	waitingState.reg_sp = (RAMTOP-(RAM_FRAMESIZE));
 	/*Inizializzo sia pc_epc che reg_t9 all'entry point come dal manuale di umps*/
 	waitingState.pc_epc = (memaddr)wait4proc;
@@ -46,6 +47,7 @@ void initWaitingProc(){
 
 #ifdef TARGET_UARM
 void initWaitingProc(){
+	ownmemset(&waitingState, 0, sizeof(state_t));
 	waitingState.pc = (memaddr)wait4proc;
 	waitingState.sp = (RAMTOP-(RAM_FRAMESIZE));
 	waitingState.cpsr = (waitingState.cpsr | STATUS_SYS_MODE);
