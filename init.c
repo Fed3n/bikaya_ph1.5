@@ -1,7 +1,6 @@
 #include "init.h"
 #include "handler.h"
 #include "auxfun.h"
-#include "const.h"
 
 #ifdef TARGET_UMPS
 /*inizializza l'exception area in kernel mode, interrupt disabilitati*/
@@ -15,7 +14,7 @@ void initExcarea(state_t* p, void* handler){
 }
 
 /*inizializza processo in kernel mode, interrupt disabilitati escluso timer*/
-/*n = numero del processo, che influenza dove gli viene assegnato spazio in ram*/
+/*n = numero del processo, che influenza la priorità e dove gli viene assegnato spazio in ram*/
 void initProcess_KM(pcb_t* p, void* fun, int n){
 	p->p_s.reg_sp = (RAMTOP-(RAM_FRAMESIZE*n));
 	/*Inizializzo sia pc_epc che reg_t9 all'entry point come dal manuale di umps*/

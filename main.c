@@ -6,7 +6,7 @@
 #include "init.h"
 
 #ifdef TARGET_UMPS
-void termprint(char *str);
+extern void termprint(char *str);
 #endif
 
 #ifdef TARGET_UARM
@@ -25,13 +25,13 @@ int main(){
 	initPcbs();
 	termprint("PCB DONE!\n");
 
-	struct pcb_t* test_1 = allocPcb();
+	pcb_t* test_1 = allocPcb();
 	initProcess_KM(test_1, test1, 1);
 
-	struct pcb_t* test_2 = allocPcb();
+	pcb_t* test_2 = allocPcb();
 	initProcess_KM(test_2, test2, 2);
 
-	struct pcb_t* test_3 = allocPcb();
+	pcb_t* test_3 = allocPcb();
 	initProcess_KM(test_3, test3, 3);
 
 	termprint("PROCESSES INITIALIZED!\n");
@@ -44,5 +44,6 @@ int main(){
 	termprint("PROCESSES QUEUED!\n");
 
 	setTIMER(ACK_SLICE);
+	termprint("Now calling scheduler...\n")
 	schedule();
 }
