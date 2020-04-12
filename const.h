@@ -69,48 +69,49 @@
 
 /*macro da passare a LDST*/
 #define TO_LOAD(status) (status)
+
+/*accesso ai registri dello state_t*/
+#define ST_A0 reg_a0
+#define ST_A1 reg_a1
+#define ST_A2 reg_a2
+#define ST_A3 reg_a3
 /*macro per accedere al pc da state_t*/
 #define ST_PC pc_epc
 
 /*macro per controllare la linea corrispondente dell'interrupt*/
 #define INTERRUPT_LINE_CAUSE(cause, line) ((cause) & CAUSE_IP(line))
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
+#define CAUSE_REG(area) CAUSE_GET_EXCCODE(area->cause)
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 1
 #define INT_PC 0
 
-/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
-#define ST_A0 reg_a0
-#define ST_A1 reg_a1
-#define ST_A2 reg_a2
-#define ST_A3 reg_a3
-/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
-#define CAUSE_REG(area) CAUSE_GET_EXCCODE(area->cause)
-
 #define SYSCALL_EXC EXC_SYS
 
 #endif
 
+
 #ifdef TARGET_UARM
 /*macro per usare LDST su uarm*/
 #define TO_LOAD(status) &(status->a1)
+
+/*accesso ai registri dello state_t*/
+#define ST_A0 a1
+#define ST_A1 a2
+#define ST_A2 a3
+#define ST_A3 a4
 /*macro per accedere al pc da state_t*/
 #define ST_PC pc
 
 /*macro per controllare la linea corrispondente dell'interrupt*/
 #define INTERRUPT_LINE_CAUSE(cause, line) CAUSE_IP_GET(cause, line)
+/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
+#define CAUSE_REG(area) CAUSE_EXCCODE_GET(area->CP15_Cause)
 
 /*word count da modificare prima di chiamare LDST dopo un'eccezione*/
 #define SYSBP_PC 0
 #define INT_PC (-1)
-
-/*accesso ai registri dello state_t per ottenere i parametri della syscall*/
-#define ST_A0 a1
-#define ST_A1 a2
-#define ST_A2 a3
-#define ST_A3 a4
-/*la seguente macro ritorna il valore del bit cause prendendo in input lo state_t corrispondente*/
-#define CAUSE_REG(area) CAUSE_EXCCODE_GET(area->CP15_Cause)
 
 #define SYSCALL_EXC EXC_SYSCALL
 

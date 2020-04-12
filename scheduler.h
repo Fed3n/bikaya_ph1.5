@@ -1,5 +1,6 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
+#include "const.h"
 
 #define AGING_AMOUNT 1
 

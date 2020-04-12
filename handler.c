@@ -1,10 +1,9 @@
 #include "handler.h"
 #include "scheduler.h"
-#include "const.h"
 #include "auxfun.h"
 
 #ifdef TARGET_UMPS
-void termprint(char *str);
+extern void termprint(char *str);
 #endif
 
 #ifdef TARGET_UARM

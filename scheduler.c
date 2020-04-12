@@ -1,39 +1,23 @@
 #include "pcb.h"
-#include "const.h"
 #include "scheduler.h"
-#include "types_bikaya.h"
 #include "auxfun.h"
 
-#ifdef TARGET_UMPS
-#include "libumps.h"
-#include "arch.h"
-#include "cp0.h"
-#include "exc_area.h"
-#endif
-
-#ifdef TARGET_UARM
-#include "libuarm.h"
-#include "arch.h"
-#endif
-#ifdef TARGET_UMPS
-void termprint(char *str);
-#endif
-
-#ifdef TARGET_UARM
-#define termprint(str) tprint(str);
-#endif
-
+/*la testa della ready queue è hidden e ci si interfaccia tramite le funzioni dello scheduler*/
 HIDDEN LIST_HEAD(readyQueue_h);
+
+/*Puntatore a processo corrente*/
 pcb_t* currentProc;
 
 /*AREA MOLTO SPERIMENTALE*/
-/*stato vuoto caricato se la ready queue è vuota in attesa di un nuovo processo*/
+/*stato di attesa caricato se la ready queue è vuota in attesa di un nuovo processo*/
 state_t waitingState;
 
+/*la WAIT() è molto meno memory consuming di un busy waiting*/
 static void wait4proc(){
 	WAIT();
 }
 
+/*Funzione per inizializzare il processo di attesa*/
 #ifdef TARGET_UMPS
 void initWaitingProc(){
 	ownmemset(&waitingState, 0, sizeof(state_t));
@@ -59,6 +43,8 @@ void initWaitingProc(){
 
 /*************************/
 
+/*In seguito sono incapsulate alcune funzioni utili di una process queue per la ready queue*/
+
 void initReadyQueue(){
 	mkEmptyProcQ(&readyQueue_h);
 	initWaitingProc();
@@ -83,6 +69,9 @@ pcb_t* outReadyQueue(pcb_t* proc){
 pcb_t* headReadyQueue(){
 	return headProcQ(&readyQueue_h);
 }
+/*******************************************************************************************/
+
+/*Funzioni per manipolare le informazioni e gli stati relativi ai processi*/
 
 void terminateCurrentProc(){
 	if(currentProc != NULL){
@@ -102,11 +91,10 @@ void updatePriority(){
 		p->priority = p->priority + AGING_AMOUNT;
 	}
 }
+/**************************************************************************/
 
 void schedule(){
-	//termprint("SCHEDULE!\n");
-
-	/*Processo in esecuzione dovrebbe venire così messo primo in coda
+	/*Processo in esecuzione viene così messo primo in coda
 	se non ci sono state modifiche alla priorità, a meno che non sia
 	stato terminato*/
 	if(currentProc != NULL){
@@ -115,9 +103,11 @@ void schedule(){
 
 	/*Se non ci sono processi da schedulare, lo scheduler attende*/
 	if(emptyReadyQueue()){
+		/*Carico uno stato che attende con interrupt abilitati*/
 		LDST(TO_LOAD((&waitingState)));
 	}
 	
+	/*Pop dalla ready queue diventa processo corrente e viene caricato*/
 	currentProc = removeReadyQueue();
 	state_t* p = &(currentProc->p_s);
 	LDST(TO_LOAD(p));
