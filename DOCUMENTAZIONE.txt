@@ -22,3 +22,8 @@ Nonostante l'unica system call da gestire in questa fase non presenta parametri 
 Nel file dedicato sono invece presenti le system call, in questo fase solo la numero tre, che si occupa di terminare il processo corrente e di rimuovere tutti i suoi figli dalla readyQueue. La funzione gestisce le due fasi separatamente: prima viene effettuata la rimozione dei figli tramite una funzione ricorsiva ausiliaria, successivamente viene terminato il processo padre e richiamato lo scheduler.
 
 #INTERRUPT#
+Gli Interrupt vengono gestiti da una funzione di handling chiamata interrupt_handler. Per questa fase si è scelto di gestire gli interrupt con il Bus Interval Timer. Il richiamo agli altri interrupt è previsto e ne è stato scritto uno scheletro progettuale, che verrà implementato nelle fasi sucessive.
+È stato implementato un controllo per la linea di Interrupt, anche se per questa fase non vengono utilizzati tutti. 
+Durante l'inizializzazione dell'Interrupt avviene un decremento di una parola nel Program Counter su uarm, dopodiché si salva lo stato della OLDAREA attraverso l'utilizzo di una funzione memcpy.
+Dopo aver controllato l'orgine dell'Interrupt, viene richiamata la funzione updatePriority() che riporta la priorità del processo corrente allo stato originale e aumenta quella degli altri processi.
+Il primo Timer per il richiamo degli interrupt avviene a priori della prima schedulazione. Durante l'esecuzione di ogni Interrupt, il timer viene reimpostato, successivamente viene richiamato lo scheduler.
