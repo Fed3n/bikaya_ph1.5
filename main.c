@@ -44,6 +44,6 @@ int main(){
 	termprint("PROCESSES QUEUED!\n");
 
 	setTIMER(ACK_SLICE);
-	termprint("Now calling scheduler...\n")
+	termprint("Now calling scheduler...\n");
 	schedule();
 }
