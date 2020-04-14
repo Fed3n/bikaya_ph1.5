@@ -2,17 +2,17 @@
 #include "scheduler.h"
 #include "auxfun.h"
 
-/*la testa della ready queue è hidden e ci si interfaccia tramite le funzioni dello scheduler*/
+/*la testa della ready queue è hidden e vi ci si interfaccia tramite le funzioni dello scheduler*/
 HIDDEN LIST_HEAD(readyQueue_h);
 
 /*Puntatore a processo corrente*/
 pcb_t* currentProc;
 
-/*AREA MOLTO SPERIMENTALE*/
+/***AREA MOLTO SPERIMENTALE***/
 /*stato di attesa caricato se la ready queue è vuota in attesa di un nuovo processo*/
 state_t waitingState;
 
-/*la WAIT() è molto meno memory consuming di un busy waiting*/
+/*la WAIT() è molto meno cpu consuming di un busy waiting*/
 static void wait4proc(){
 	WAIT();
 }
@@ -94,9 +94,8 @@ void updatePriority(){
 /**************************************************************************/
 
 void schedule(){
-	/*Processo in esecuzione viene così messo primo in coda
-	se non ci sono state modifiche alla priorità, a meno che non sia
-	stato terminato*/
+	/*Processo in esecuzione viene messo primo in coda
+	se non ci sono state modifiche alla priorità*/
 	if(currentProc != NULL){
 		insertReadyQueue(currentProc);
 	}

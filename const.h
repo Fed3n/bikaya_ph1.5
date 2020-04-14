@@ -44,8 +44,6 @@
 #define RAM_FRAMESIZE 4096
 #define WORDSIZE 4
 
-#define memcpy ownmemcpy
-
 #define TIME_SLICE 3000
 #define ACK_SLICE TIME_SLICE*(*(memaddr *)BUS_REG_TIME_SCALE)
 #define INTER_PROCESSOR_INTERRUPT 0
@@ -65,6 +63,7 @@
 #ifdef TARGET_UMPS
 /*interrupt disabled, kernel mode, local timer on, virtual memory off*/
 #define STATUS_ALL_INT_DISABLE_KM_LT(status) ((status) | (STATUS_TE))
+/*interrupt disabled eccetto i timer, kernel mode, virtual memory off*/
 #define STATUS_ALL_INT_ENABLE_KM_LT(status) ((status) | (STATUS_IEp) | (STATUS_IM(1)) | (STATUS_IM(2)) | (STATUS_TE))
 
 /*macro da passare a LDST*/
